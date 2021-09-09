@@ -1,0 +1,103 @@
+[log4j.xml]
+
+  <?xml version="1.0" encoding="utf-8" ?>
+  <Configuration  status="INFO">
+      <Properties>
+          <Property name="filename">D:/code/java/tmp/demo1/log/chapter11/test.log</Property>
+      </Properties>
+      <appenders>
+          <File name="fileAppender" fileName="${filename}" append="true">
+              <PatternLayout pattern="%d{yyyy-MM-dd} %d{HH:mm:ss.SSS} %-5level [%class{1}] %msg %n"/>
+          </File>
+      </appenders>
+      <Loggers>
+          <Root level="info">
+              <appender-ref ref="fileAppender"/>
+          </Root>
+      </Loggers>
+  </Configuration >
+  
+ [mylog]
+ 
+   public class MyLog {
+      private static final Logger logger = LogManager.getLogger(MyLog.class.getName());
+
+      public static void startTestCase(String testCaseName){
+          logger.info("------------------------------------------------------");
+          logger.info("***************" + testCaseName + "***************");
+      }
+
+      public static void endTestCase(){
+          logger.info("***************" + "测试用例结束" + "***************");
+          logger.info("------------------------------------------------------");
+      }
+
+      public static void info(String msg){
+          logger.info(msg);
+      }
+
+      public static void error(String msg){
+          logger.error(msg);
+      }
+
+      public static void fatal(String msg){
+          logger.fatal(msg);
+      }
+
+      public static void debug(String msg){
+          logger.debug(msg);
+      }
+  }
+  
+ [使用案例]
+  /**
+   * @description: 使用日志
+   * @author: 周孝川
+   * @time: 2021/8/15 16:53
+   */
+
+  public class Script16 {
+      private WebDriver driver;
+      private WebDriverWait wait;
+      @BeforeClass
+      public void beforeClass() throws IOException {
+          ConfigurationSource source;
+          source = new ConfigurationSource(new FileInputStream("./log/chapter11/log4j.xml"));
+          Configurator.initialize(null, source);
+          MyLog.startTestCase("使用日志测试用例");
+          SetProperty.setProperty();
+          MyLog.info("初始化配置成功");
+      }
+
+      @BeforeMethod
+      public void beforeMethod(){
+          ProfilesIni allProfile = new ProfilesIni();
+          FirefoxProfile webdriverProfile = allProfile.getProfile("webdriver");
+          MyLog.info("成功读取到名为webdriver用户配置信息");
+          FirefoxOptions options = new FirefoxOptions();
+          options.setProfile(webdriverProfile);
+          driver = new FirefoxDriver();
+          wait = new WebDriverWait(driver, 10);
+          MyLog.info("成功启动带有用户配置信息(webdriver)的浏览器窗口");
+      }
+
+      @Test
+      public void test(){
+          driver.get("https://www.baidu.com");
+          MyLog.info("成功进入到百度");
+          driver.findElement(By.id("kw")).sendKeys("selenium");
+          MyLog.info("往出入框中输入数据成功");
+          driver.findElement(By.id("su")).click();
+          MyLog.info("成功点击");
+          wait.until(ExpectedConditions.titleContains("selenium"));
+          MyLog.info("跳转页面成功");
+          Assert.assertTrue(driver.getCurrentUrl().contains("selenium"));
+      }
+
+      @AfterMethod
+      public void afterMethod(){
+          driver.quit();
+          MyLog.endTestCase();
+      }
+  }
+
